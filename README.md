@@ -2,7 +2,7 @@
 
 > **English intro**: Cross-machine DSH group chat (dsh-chat × dsh-weave) — adapter fixes (Fix1–Fix4), mechanism research, field reports and a maintenance roadmap for the "multi-agent meeting room" setup, packed as a reproducible, publishable repo.
 
-**中文定位**：dsh-chat / dsh-weave **跨机群聊的适配修复与运维文档集**。我们在双机协作排障（主机A 成员机 & 主机B host 机）联调"多 agent 会议室"的过程中，发现并修复了 dsh-weave `0.1.0-rc.14` 的四个底层缺陷（Fix1–Fix4），并把机制研究、排障与复盘报告、可视化全景图、升级规划整理成本仓库 —— 目标是让任何人能**一条命令复现修复**、读懂机制、接着往下演进。
+**中文定位**：dsh-chat / dsh-weave **跨机群聊的适配修复与运维文档集**。我们在双机协作排障（主机A host 机 & 主机B 成员机）联调"多 agent 会议室"的过程中，发现并修复了 dsh-weave `0.1.0-rc.14` 的四个底层缺陷（Fix1–Fix4），并把机制研究、排障与复盘报告、可视化全景图、升级规划整理成本仓库 —— 目标是让任何人能**一条命令复现修复**、读懂机制、接着往下演进。
 
 ---
 
@@ -61,6 +61,8 @@ powershell -ExecutionPolicy Bypass -File patches/patch-weave.ps1
 
 > ⚠️ **运维铁律**：`dsh-weave` 一旦升级（`npm update` 等）会覆盖 node_modules 里的补丁 —— **升级后必须重跑本脚本**。
 
+> 📘 **想从零搭起完整三件套会议室**（双机装 DSH 与 dsh-chat/dsh-weave/dsh-bridge、互 trust、host 建房间 + 邀请成员、验证链路、常见坑）？见 **[docs/SETUP.md](docs/SETUP.md)**（端到端部署手册）。
+
 ## 5. 仓库结构与文档导航
 
 ```
@@ -70,6 +72,7 @@ huahua-dsh-chatroom/
 ├─ .gitignore
 ├─ docs/
 │  ├─ PATCH-NOTES.md            ← Fix1–Fix4 补丁说明（问题/改动对照 + 行号表 + 验证方式 + MIT 归属）
+│  ├─ SETUP.md                  ← 端到端部署手册（从零搭双机会议室：三件套安装/互 trust/建房间/验证/避坑）
 │  ├─ mechanism-study.md        ← 运行机制研究与方案（6 组 Q&A + 落地清单）
 │  ├─ usage-guide.md            ← 会议室使用指南（@ 规则/成员管理/跨机配置/FAQ/Agent 操作速查）
 │  ├─ architecture-overview.html   ← 全景图看板（单文件自包含，浏览器直接打开）
@@ -83,7 +86,7 @@ huahua-dsh-chatroom/
 
 > 排障报告链（编号成链可追溯）：`docs/weave-integration-report.md`（联调过程）→ `docs/weave-postmortem.md`（Fix1/Fix2 复盘）→ `docs/fix3-frame-limit-postmortem.md`（Fix3 专项，由 Fix4 接续）。
 
-**阅读顺序建议**：先 README（本文）→ `docs/mechanism-study.md`（机制）→ `docs/usage-guide.md`（怎么用）→ `docs/PATCH-NOTES.md`（改了什么）→ 排障报告链 `weave-integration-report → weave-postmortem → fix3-frame-limit-postmortem`（怎么踩出来的）→ 打开 `docs/architecture-overview.html` 看图。
+**阅读顺序建议**：先 README（本文）→ `docs/SETUP.md`（端到端部署）→ `docs/mechanism-study.md`（机制）→ `docs/usage-guide.md`（怎么用）→ `docs/PATCH-NOTES.md`（改了什么）→ 排障报告链 `weave-integration-report → weave-postmortem → fix3-frame-limit-postmortem`（怎么踩出来的）→ 打开 `docs/architecture-overview.html` 看图。
 
 ## 6. 升级路线图
 
