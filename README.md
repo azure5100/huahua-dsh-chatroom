@@ -106,6 +106,7 @@ huahua-dsh-chatroom/
 │  ├─ SETUP.md                  ← 端到端部署手册（从零搭双机会议室：三件套安装/互 trust/建房间/验证/避坑）
 │  ├─ mechanism-study.md        ← 运行机制研究与方案（6 组 Q&A + 落地清单）
 │  ├─ usage-guide.md            ← 会议室使用指南（@ 规则/成员管理/跨机配置/FAQ/Agent 操作速查）
+│  ├─ EXTERNAL-BRIDGE.md        ← 外部 agent/桥接入指南（HTTP RPC 伪成员模式/@捕获/轮询，免 weave）
 │  ├─ architecture-overview.html   ← 全景图看板（单文件自包含，浏览器直接打开）
 │  ├─ weave-integration-report.md  ← 跨机联调报告（Fix1 定位与打通过程；历史快照）
 │  ├─ weave-postmortem.md          ← Fix1/Fix2 复盘报告（根因 A/B 归纳 + 修复 6 步；历史快照）
@@ -116,7 +117,7 @@ huahua-dsh-chatroom/
 
 > 排障报告链（编号成链可追溯）：`docs/weave-integration-report.md`（联调过程）→ `docs/weave-postmortem.md`（Fix1/Fix2 复盘）→ `docs/fix3-frame-limit-postmortem.md`（Fix3 专项，由 Fix4 接续）。
 
-**阅读顺序建议**：先 README（本文）→ `docs/SETUP.md`（端到端部署）→ `docs/mechanism-study.md`（机制）→ `docs/usage-guide.md`（怎么用）→ `docs/PATCH-NOTES.md`（改了什么）→ 排障报告链 `weave-integration-report → weave-postmortem → fix3-frame-limit-postmortem`（怎么踩出来的）→ 打开 `docs/architecture-overview.html` 看图。
+**阅读顺序建议**：先 README（本文）→ `docs/SETUP.md`（端到端部署）→ `docs/mechanism-study.md`（机制）→ `docs/usage-guide.md`（怎么用）→ `docs/EXTERNAL-BRIDGE.md`（外部 agent/桥接入）→ `docs/PATCH-NOTES.md`（改了什么）→ 排障报告链 `weave-integration-report → weave-postmortem → fix3-frame-limit-postmortem`（怎么踩出来的）→ 打开 `docs/architecture-overview.html` 看图。
 
 ## 6. 升级路线图
 
