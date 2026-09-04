@@ -16,6 +16,8 @@ docs/ASSET-INVENTORY.md
 # REVIEW.md is the reviewer's compliance working doc — also carries
 # pre-sanitization token references; on-disk only, never published.
 docs/REVIEW.md
+# REVIEW-FINAL.md is the reviewer's final audit working doc — same rule.
+docs/REVIEW-FINAL.md
 
 # OS / editor noise
 .DS_Store
