@@ -13,6 +13,9 @@ yarn-error.log*
 # ASSET-INVENTORY.md is the team's working source-of-truth and carries
 # pre-sanitization references (host names, addresses, instance ids).
 docs/ASSET-INVENTORY.md
+# REVIEW.md is the reviewer's compliance working doc — also carries
+# pre-sanitization token references; on-disk only, never published.
+docs/REVIEW.md
 
 # OS / editor noise
 .DS_Store
