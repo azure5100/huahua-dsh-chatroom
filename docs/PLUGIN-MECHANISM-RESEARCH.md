@@ -311,7 +311,7 @@ dsh-chat 的 `apply`（lib/index.js）做四件事，代理工具的可见性链
 
 ### 6.3 发布物（承接 t1 资产清单）
 
-在 `D:\huahua-dsh-chatroom` 下新增 `plugin/` 子工程：
+在 `D:\huahua-dsh-chatroom` 下新增 `plugin/` 子工程（> 实施注记：该子工程已于发布期**提升为仓库根**——根 `package.json`（dsh.bundle）+ 根 `cordis.patch.yml` + 根 `lib/`、`tests/`；本节约为当时的实施蓝图，最终落点以仓库根为准）：
 ```
 plugin/
 ├─ package.json          # dsh.bundle.patch 清单 + peerDeps + exports（§1.1 骨架）

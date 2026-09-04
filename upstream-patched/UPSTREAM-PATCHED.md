@@ -63,7 +63,7 @@ upstream-patched/
 
 ## 7. 升级铁律
 
-`dsh-weave` 升级会覆盖 node_modules 里的补丁 → **升级后必须重跑 `patch-weave.ps1`（或安装 plugin/ 的补丁守护自动处理），并重启 DSH 使新代码生效**。
+`dsh-weave` 升级会覆盖 node_modules 里的补丁 → **升级后必须重跑 `patch-weave.ps1`（或安装仓库根的 kit 插件后由补丁守护自动重打），并重启 DSH 使新代码生效**。
 
 ## 8. 合规说明
 
