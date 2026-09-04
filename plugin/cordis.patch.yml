@@ -1,0 +1,10 @@
+# huahua-dsh-chatroom kit — inserts exactly one loader row.
+#
+# Row id must stay unique across the whole profile (loader rejects duplicate
+# entry ids). It deliberately does NOT collide with the dsh-chat / dsh-weave /
+# dsh-bridge rows, and this bundle never inserts those rows itself: the kit
+# assumes the chat trio is installed & activated first (see README install
+# sequence). "name" must equal this package's package.json "name".
+- insert:
+    - id: dsh-chatroom-kit
+      name: huahua-dsh-chatroom
