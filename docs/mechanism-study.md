@@ -170,4 +170,4 @@ weave 底层就是 Iroh（原生支持 content-addressed blob 分发、断点续
 | 5 | 附件引用协议 L1（文件传输） | 开发 | 中（前后端） |
 | 6 | agent 主动读消息工具 / notifyMode（值班模式） | 开发 | 中 |
 
-> 详细机制源码定位、排障记录见 gbrain：`nango-dsh-weave-fix3-frame-limit-20260904`、`nango-dsh-weave-复盘-20260904`。
+> 配套归档：修复与排障细节见 `docs/PATCH-NOTES.md` 与报告链（`docs/weave-integration-report.md` → `docs/weave-postmortem.md` → `docs/fix3-frame-limit-postmortem.md`）。

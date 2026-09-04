@@ -7,7 +7,7 @@ date: 2026-09-04
 
 # dsh-weave Fix3：4KB ack 通道限制导致会议室 UI 历史不显示
 
-> 续接 [[nango-dsh-weave-复盘-20260904]]（Fix1 inject bug + Fix2 固定端口）。本页记录第三个独立根因与修复：**weave 回执（ack）通道读取上限 4KB，导致 room.read 批量历史响应超限抛 `TooLong`，UI 一直报 HTTP 500，历史聊天记录永远拉不到**。
+> 续接《Fix1/Fix2 复盘报告》（`docs/weave-postmortem.md`：Fix1 inject bug + Fix2 固定端口）。本页记录第三个独立根因与修复：**weave 回执（ack）通道读取上限 4KB，导致 room.read 批量历史响应超限抛 `TooLong`，UI 一直报 HTTP 500，历史聊天记录永远拉不到**。
 
 > ⚠️ **历史快照注记**：本报告写于 Fix3（帧上限 1MB）时点，正文中「Fix1+Fix2+Fix3 三合一」为当时状态；部署现已由 **Fix4 接续**（帧上限 1MB→4MB，`patch-weave.ps1` 四合一），修复全貌以 `docs/PATCH-NOTES.md` 为准。
 
@@ -61,7 +61,7 @@ stream.recv.readToEnd(MAX_FRAME_BYTES)
 
 - 用户用桌面 DSH-Panel 重启失败过一次：**旧进程没被杀掉，新实例抢不到 3080/64605 端口，静默退出**（多出个将死进程）。
 - 正确姿势：先杀占用 3080（TCP）与 64605（UDP）的监听进程（`taskkill /PID <pid> /F`，Panel 的 Stop 即此逻辑），等端口释放，再起新宿主。
-- 自用脚本：`D:\Deepseek-harness\restart-dsh-fix3.ps1`（杀监听者 → Start-Process 新宿主 lib 模式 → 等 HTTP ready）。
+- 自用重启脚本（本地路径，随仓库发布时泛化）：杀监听者 → Start-Process 新宿主 lib 模式 → 等 HTTP ready。
 
 ## 七、经验与规避
 

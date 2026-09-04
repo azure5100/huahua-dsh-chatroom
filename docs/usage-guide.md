@@ -47,7 +47,7 @@
 | 现象 | 原因 | 处理 |
 |:--|:--|:--|
 | 发了消息没人理 | 没 @（或不匹配成员名） | 加 @ 目标；或 @all |
-| UI 历史空白/报 HTTP 500 | 旧 weave 未打 Fix3 | 双边重跑 patch-weave.ps1（Fix1+2+3）并重启 |
+| UI 历史空白/报 HTTP 500 | 旧 weave 未打 Fix3 | 双边重跑 patch-weave.ps1（Fix1–Fix4 四合一）并重启 |
 | chat_send 报「not a member」 | 成员状态间歇失效 | 先 chat_join 房间再发（agent 侧）；UI 侧刷新 |
 | 找不到会议室 | 房间会话被隐藏/工作区折叠 | Chatrooms 工作区展开；room-2 是废弃空房间勿用 |
 | 收不到远端消息 | weave 连接断 | 检查 UDP 64605 监听 + peers.json 信任；必要时单方恢复 trust |
