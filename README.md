@@ -22,7 +22,7 @@ DSH（DeepSeek Harness）跨机群聊由三件套协作构成：
 
 ## 2. 功能特性
 
-- **四合一幂等补丁** `patches/patch-weave.ps1`：一次运行修复 Fix1–Fix4；重复执行自动跳过已打项（"nothing to do"）；首次执行自动备份 `index.js.bak-portfix`；写盘后自动 `node --check` 语法校验；目标文件缺失或未命中时报红字并退出码 1。
+- **四合一幂等补丁** `patches/patch-weave.ps1`：一次运行修复 Fix1–Fix4；重复执行自动跳过已打项（"nothing to do"）；首次执行自动备份 `index.js.bak-portfix`；写盘后自动 `node --check` 语法校验；目标文件缺失时报红字并以退出码 1 结束；单个 Fix 目标串未命中仅红字 WARN 提示人工核对（新版上游可能已变动），不中断、不视为失败（幂等友好）。
 - **机制研究文档**：6 组 Q&A 讲清"聊天记录如何进 agent 上下文 / 多机扩展 / 存储三层 / 唤醒机制 / 文件传输方案 / 使用指南"。
 - **可视化全景图**（单文件 HTML，浏览器直接打开）：拓扑架构、核心消息流、数据存储地图、上下文生命周期、补丁时间线、排障速查、@ 规则速查 7 大章节。
 - **完整排障证据链**：联调报告（过程）+ 复盘报告（根因归纳）+ Fix3 专项报告（证据链），编号成链可追溯。
@@ -55,7 +55,7 @@ powershell -ExecutionPolicy Bypass -File patches/patch-weave.ps1
 
 - 首次执行：自动备份原文件为 `index.js.bak-portfix` → 依次应用 Fix1–Fix4 → `node --check` 语法校验；
 - 再次执行：检测到已打补丁，输出 "nothing to do" 并正常退出（幂等）；
-- 目标文件缺失 / 查找串未命中：红字 WARN，退出码 1（不会破坏现场）。
+- 目标文件缺失：红字报错并以退出码 1 结束（不会破坏现场）；查找串未命中：红字 WARN 提示人工核对（新版上游可能已变动），不视为失败、脚本继续。
 
 打完后重启 weave / DSH web profile，固定端口 64605 生效。
 
@@ -73,15 +73,17 @@ huahua-dsh-chatroom/
 │  ├─ mechanism-study.md        ← 运行机制研究与方案（6 组 Q&A + 落地清单）
 │  ├─ usage-guide.md            ← 会议室使用指南（@ 规则/成员管理/跨机配置/FAQ/Agent 操作速查）
 │  ├─ architecture-overview.html   ← 全景图看板（单文件自包含，浏览器直接打开）
+│  ├─ weave-integration-report.md  ← 跨机联调报告（Fix1 定位与打通过程；历史快照）
+│  ├─ weave-postmortem.md          ← Fix1/Fix2 复盘报告（根因 A/B 归纳 + 修复 6 步；历史快照）
 │  ├─ fix3-frame-limit-postmortem.md ← Fix3 专项排障报告（完整证据链；历史快照，由 Fix4 接续）
 │  └─ ROADMAP.md                ← 升级路线图（本仓库后续演进规划）
 └─ patches/
    └─ patch-weave.ps1           ← 四合一幂等补丁（Fix1–Fix4）
 ```
 
-> 打包补齐中（发布时落地）：`reports/`（联调 / Fix1–Fix2 复盘等历史排障报告，与 `docs/fix3-frame-limit-postmortem.md` 编号成链）。
+> 排障报告链（编号成链可追溯）：`docs/weave-integration-report.md`（联调过程）→ `docs/weave-postmortem.md`（Fix1/Fix2 复盘）→ `docs/fix3-frame-limit-postmortem.md`（Fix3 专项，由 Fix4 接续）。
 
-**阅读顺序建议**：先 README（本文）→ `docs/mechanism-study.md`（机制）→ `docs/usage-guide.md`（怎么用）→ `docs/PATCH-NOTES.md`（改了什么）→ `docs/fix3-frame-limit-postmortem.md`（怎么踩出来的）→ 打开 `docs/architecture-overview.html` 看图。
+**阅读顺序建议**：先 README（本文）→ `docs/mechanism-study.md`（机制）→ `docs/usage-guide.md`（怎么用）→ `docs/PATCH-NOTES.md`（改了什么）→ 排障报告链 `weave-integration-report → weave-postmortem → fix3-frame-limit-postmortem`（怎么踩出来的）→ 打开 `docs/architecture-overview.html` 看图。
 
 ## 6. 升级路线图
 

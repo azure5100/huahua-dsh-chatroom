@@ -29,7 +29,7 @@ S ≤ 0.5d ｜ M 0.5–3d ｜ L > 3d
 
 ## M0 · 基线发布（✅ 本期交付）
 
-**范围**：Fix1–Fix4 四合一幂等补丁（`patches/patch-weave.ps1`）+ 补丁说明 + 机制研究/使用指南 + 联调/复盘/专项报告 + 全景图 + 本路线图。
+**范围**：Fix1–Fix4 四合一幂等补丁（`patches/patch-weave.ps1`）+ 补丁说明 + 机制研究/使用指南 + 排障报告链（`docs/weave-integration-report.md` → `docs/weave-postmortem.md` → `docs/fix3-frame-limit-postmortem.md`）+ 全景图 + 本路线图。
 
 **帧上限演进注记**：`64KB → 1MB(Fix3) → 4MB(Fix4)` 两次演进已在此收官。**原则：4MB 之后不再靠继续加大帧上限解决大内容** —— 帧走 JSON 文本通道，体量会挤占 2000 条消息窗口与 UI 时间线渲染；更大的内容应走 R1 附件引用协议，而不是加帧。
 

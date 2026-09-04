@@ -23,7 +23,7 @@ powershell -ExecutionPolicy Bypass -File patches\patch-weave.ps1 -WeaveIndex "D:
 $env:DSH_WEAVE_PORT = "64605"
 ```
 
-脚本行为：首次执行自动备份原文件为 `index.js.bak-portfix`；写盘后自动 `node --check` 语法校验；目标文件缺失 / 查找串未命中输出红字 WARN 并以退出码 1 结束（不破坏现场）。
+脚本行为：首次执行自动备份原文件为 `index.js.bak-portfix`；写盘后自动 `node --check` 语法校验；目标文件缺失时红字报错并以退出码 1 结束（不破坏现场）；查找串未命中仅红字 WARN 提示人工核对（新版上游可能已变动），不视为失败、脚本继续（幂等友好）。
 
 ## 2. Fix 总览
 
