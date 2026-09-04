@@ -1,6 +1,6 @@
-# dsh会议室（ea4228fb）运行机制研究与方案（2026-09-04）
+# dsh会议室（room-1）运行机制研究与方案（2026-09-04）
 
-> 丽丽（192.168.1.3）& 大力（192.168.1.168，host）联合研究。基于源码（dsh-chat rc.33 / dsh-weave rc.14 / dsh-bridge rc.15 / room-store.js / client.js）+ 双端实测。
+> 主机B（192.0.2.2）& 主机A（192.0.2.1，host）联合研究。基于源码（dsh-chat rc.33 / dsh-weave rc.14 / dsh-bridge rc.15 / room-store.js / client.js）+ 双端实测。
 
 ---
 
@@ -13,7 +13,7 @@
 ```
 @消息 ──> host 权威入列 ──> 按 mentions 投递 ──> bridge.followup(用户消息)
                                                     │
-                                         目标 agent 会话（如 DSH-丽丽）
+                                         目标 agent 会话（如 agent-b）
                                                     │
                                          像普通对话一样占 LLM 上下文窗口
 ```
@@ -22,7 +22,7 @@
 
 ### 防爆机制（实测：已在运行 ✅）
 
-- **自动上下文压缩（compaction）实际触发过**：双端会话都出现过 "automatically generated checkpoint condensing an earlier span"（checkpoint 摘要）——这是 compaction 把早期长对话压成摘要的证据（大力会话 zstd 日志已 9.5MB 仍能正常续聊）。
+- **自动上下文压缩（compaction）实际触发过**：双端会话都出现过 "automatically generated checkpoint condensing an earlier span"（checkpoint 摘要）——这是 compaction 把早期长对话压成摘要的证据（主机A会话 zstd 日志已 9.5MB 仍能正常续聊）。
 - 机制（dsh-compaction-basic）：token 使用达**窗口 80%** → 自动把早期历史压缩为摘要 + **保留尾部 16% 原文**（近期对话保持完整）→ 会话不爆。
 - **日志全量持久化不丢**：压缩只影响「模型可见上下文」，完整对话日志始终落盘 `~/.dsh/sessions/<workspace>/<sessionId>/session.jsonl.zstd`，随时可回看/导出。
 - 房间侧生命周期：host rooms.json **2000 条滚动窗口**，超过裁剪最老（有界历史）；每端 rooms.json 是 cursor + 缓存（可离线看已拉取部分）。
@@ -43,7 +43,7 @@
 
 ### 结论：架构支持，机制已具备（host-hub + weave mesh + relay）
 
-- 房间成员模型就是**多 agent 设计**：members 数组同时容纳本地 session（本机任意 agent 会话）与 remote（其他 weave 主机的任意会话），已实测房间同时含大力/丽丽/微信桥等多成员记录。
+- 房间成员模型就是**多 agent 设计**：members 数组同时容纳本地 session（本机任意 agent 会话）与 remote（其他 weave 主机的任意会话），已实测房间同时含agent-a/agent-b/微信桥等多成员记录。
 - **消息拓扑 = 星型（host 为 hub）**：所有消息发 host，host 权威入列后按 mentions 投递各成员（本机走 bridge、跨机走 weave）。**新成员加入不需要改协议**。
 - **跨网中继（relay）已启用**：Iroh relay（euc1-1.relay.n0.iroh.link）在双方票中，不同网络（非同一局域网）的机器经 relay 也能按 peer ID 互达——这就是你提到的「relay 中继」方案，**已内置支持**。
 
@@ -57,7 +57,7 @@
 
 | 限制 | 说明 | 建议 |
 |:--|:--|:--|
-| host 单点 | host 关机则：消息发不出、历史拉不到（其余成员只能看本地缓存） | 约定 host 机器（大力）常开；或让重要讨论的另一方也建 host 房间做归档 |
+| host 单点 | host 关机则：消息发不出、历史拉不到（其余成员只能看本地缓存） | 约定 host 机器（主机A）常开；或让重要讨论的另一方也建 host 房间做归档 |
 | @all 成本线性放大 | N 个 agent 全员唤醒 = N 倍 token | 默认点名；大规模讨论才 @all |
 | 无自动发现 | 新机需手动 trust + 添加 | 机器少（<5）手动够用；多机可做脚本批量 trust |
 | 每 agent 一个成员 | 成员粒度是「会话」不是「机器」 | 一台机可多会话入房，需分别添加 |
@@ -70,7 +70,7 @@
 
 | 层 | 位置 | 内容 |
 |:--|:--|:--|
-| **权威（host）** | 大力机 `~/.dsh/dsh-chat/rooms.json` | 全量消息（2000 条窗口）、members、pendingDeliveries、cursor。实测 69.7KB / 58 条 |
+| **权威（host）** | 主机A `~/.dsh/dsh-chat/rooms.json` | 全量消息（2000 条窗口）、members、pendingDeliveries、cursor。实测 69.7KB / 58 条 |
 | **成员端缓存** | 各机 `~/.dsh/dsh-chat/rooms.json` | 同 id 房间：cursor + 已拉取消息缓存（host 离线也能看缓存） |
 | **UI 载体会话** | `~/.dsh/sessions/.../dsh-chat-room-v3-<房间id>/` | 只含 chat/room-link 种子事件（710B），供 UI 渲染时间线；**消息不落这里** |
 
@@ -99,17 +99,17 @@
 ```
 
 - **点对会议室还是点对点？** 存储是点对会议室（消息都进 host 房间时间线）；**唤醒是点对点**（只唤醒 @ 命中者）。
-- **你的实测正确：不 @，我和大力都收不到。** 这是刻意设计——「防打扰」：避免房间里每条消息都唤醒所有 agent（每唤醒一次 = 一次完整模型请求 = token + 上下文增长 + 群聊混乱）。人类用户在 UI 能看到全部，agent 是「呼之则来」。
+- **你的实测正确：不 @，我和主机A都收不到。** 这是刻意设计——「防打扰」：避免房间里每条消息都唤醒所有 agent（每唤醒一次 = 一次完整模型请求 = token + 上下文增长 + 群聊混乱）。人类用户在 UI 能看到全部，agent 是「呼之则来」。
 
 ### 使用场景对照
 
 | 你的意图 | 做法 | 效果 |
 |:--|:--|:--|
-| 找丽丽办事 | 消息里 @丽丽 / @DSH-丽丽 | 丽丽收到并响应 |
-| 找大力 | @dsh-大力 | 大力响应 |
+| 找主机B办事 | 消息里 @agent-b | 主机B收到并响应 |
+| 找主机A | @agent-a | 主机A响应 |
 | 大家讨论/汇报 | @all | 全员唤醒 |
 | 记录/通知（不需 agent 响应） | 直接发不 @ | 时间线留档，不打扰任何人 |
-| 指定多人 | @丽丽 @dsh-大力 | 只唤醒这两位 |
+| 指定多人 | @agent-b @agent-a | 只唤醒这两位 |
 
 ### 缺口与可选增强（若需要「值班 agent 监听」）
 
@@ -125,7 +125,7 @@
 ### 现状：不支持
 
 - dsh-chat 消息模型只有 text（`ensureText`），无附件字段；
-- weave 帧是 JSON 文本通道，Fix3 后上限 1MB（base64 嵌入实际 ~750KB 可用，且会挤占 2000 条消息窗口）；
+- weave 帧是 JSON 文本通道，Fix3/Fix4 后上限 4MB（base64 嵌入可用空间大，且会挤占 2000 条消息窗口）；
 - 现有 dsh-at-file 是「@ 引用工作区路径」、dsh-share 是「对话导出 PNG/MD」，都不提供房间内文件传输。
 
 ### 推荐方案 L1：附件引用协议（消息传元数据，文件走 HTTP）
@@ -138,12 +138,12 @@
 ```
 
 - **weave 只传元数据**（几十字节），帧限制无压力；文件本体走局域网 HTTP（快、可靠、支持大文件）
-- 双机同一局域网（192.168.1.x）直连即通；跨网走 host 公网端口或现有隧道
+- 双机同一局域网（192.0.2.0/24）直连即通；跨网走 host 公网端口或现有隧道
 - 改动点：dsh-chat 加附件字段 + host 提供静态文件端点 + UI 拖拽上传 + agent 端识别下载（改动中等，前后端各一块）
 
 ### 过渡方案 L0（今天就能用，零开发）
 
-- 小文件（<1MB 文本类）：直接贴内容或 base64 进消息（注意 1MB 帧上限）
+- 小文件（<1MB 文本类）：直接贴内容或 base64 进消息（注意 Fix4 后帧上限 4MB）
 - 文件已在本机：消息发路径，对方机器若有共享盘/同一命名空间可直接读
 - 图片/文档：用 `dsh_im_return_file`（发回当前对话）/ 桌面共享 / 微信渠道等现有通道互传，房间内发个「已发 xx 文件到桌面」通知
 
@@ -166,7 +166,7 @@ weave 底层就是 Iroh（原生支持 content-addressed blob 分发、断点续
 | 1 | 会议室使用规范（@ 点名 / @all 群议 / 不@留档） | 约定 | 0（本期交付） |
 | 2 | 2000 条窗口归档提醒：host 定期备份 rooms.json | 约定 | 0 |
 | 3 | 上下文观察：@ 投递高频会话注意摘要压缩，重要结论入 gbrain | 约定 | 0 |
-| 4 | Fix4：帧上限 1MB→4MB（远期防增量拉取复发） | 补丁 | 极小（一行） |
+| 4 | Fix4：帧上限 1MB→4MB ✅ **已落地**（patch-weave.ps1 四合一） | 补丁 | 已完成 |
 | 5 | 附件引用协议 L1（文件传输） | 开发 | 中（前后端） |
 | 6 | agent 主动读消息工具 / notifyMode（值班模式） | 开发 | 中 |
 

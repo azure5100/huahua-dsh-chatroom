@@ -9,14 +9,16 @@ date: 2026-09-04
 
 > 续接 [[nango-dsh-weave-复盘-20260904]]（Fix1 inject bug + Fix2 固定端口）。本页记录第三个独立根因与修复：**weave 回执（ack）通道读取上限 4KB，导致 room.read 批量历史响应超限抛 `TooLong`，UI 一直报 HTTP 500，历史聊天记录永远拉不到**。
 
+> ⚠️ **历史快照注记**：本报告写于 Fix3（帧上限 1MB）时点，正文中「Fix1+Fix2+Fix3 三合一」为当时状态；部署现已由 **Fix4 接续**（帧上限 1MB→4MB，`patch-weave.ps1` 四合一），修复全貌以 `docs/PATCH-NOTES.md` 为准。
+
 ## 一、问题现象
 
-【用户视角】「会议室看不到聊天记录」。ea4228fb（dsh会议室，host=大力 f7bd62da，linked=丽丽 session-3950c88a）在 UI 里历史全空。
-【数据视角】丽丽本地 rooms.json 缓存停在 **27 条**（cursor=27），大力 host 权威 **43+ 条**。重启 DSH、chat_join 重加成员均无效——缓存纹丝不动。
+【用户视角】「会议室看不到聊天记录」。room-1（dsh会议室，host=主机A peerId-A，linked=主机B session-xxxx）在 UI 里历史全空。
+【数据视角】主机B本地 rooms.json 缓存停在 **27 条**（cursor=27），主机A host 权威 **43+ 条**。重启 DSH、chat_join 重加成员均无效——缓存纹丝不动。
 
 ## 二、诊断过程（证据链）
 
-1. **排除网络层**：chat_send（room.post）发消息成功、大力秒回（host 43 条）→ weave 连接与双向投递正常，问题只出在「读历史」路径。
+1. **排除网络层**：chat_send（room.post）发消息成功、主机A秒回（host 43 条）→ weave 连接与双向投递正常，问题只出在「读历史」路径。
 2. **无头浏览器复现**（Playwright 打开 http://127.0.0.1:3080 → Chatrooms → dsh会议室）：RoomTimeline 正常挂载，但页面顶部红字 **`transport failure for /dsh-chat/messages: HTTP 500`**，消息区空态。
 3. **重放宿主 RPC 拿真实错误**：抓到 UI 的 RPC 协议（`POST /dsh-chat/<method>`，body=`{"type":"client-request","rpcId":"<uuid>","method":"messages","payload":{"args":{...}}}`），直接重放 → **`handler failure: Error: TooLong`**（Iroh readToEnd 超限错误）。
 4. **大小边界测试**：limit=1/5 → 200 OK；limit=10 → TooLong。错误与响应体量正相关 → 指向帧大小上限。
@@ -45,15 +47,15 @@ stream.recv.readToEnd(MAX_FRAME_BYTES)
 
 - `node --check` 语法验证通过。
 - 重启宿主加载（重启姿势见下）。
-- 大力同步补丁并重启；patch-weave.ps1 升级为 **Fix1+Fix2+Fix3 三合一**，升级 dsh-weave 后重跑一次全打。
+- 主机A同步补丁并重启；patch-weave.ps1 升级为 **Fix1+Fix2+Fix3 三合一**，升级 dsh-weave 后重跑一次全打。
 
 ## 五、验证结果（双端互验）
 
 - 修复前：limit=10 → TooLong；修复后：**limit=200 → 200 OK，54 条全量返回**。
-- 大力侧：limit=200 拉取成功（52KB 响应 / 53 条完整返回，此前 4KB 即 TooLong）。
+- 主机A侧：limit=200 拉取成功（52KB 响应 / 53 条完整返回，此前 4KB 即 TooLong）。
 - 本地缓存 27 → 50 → 53 → **54 条**，cursor 与 host 完全一致。
 - UI 无头浏览器实测：RoomTimeline 从第一条欢迎语到最新消息完整渲染，**HTTP 500 消失**。
-- 中间态备忘：丽丽先重启、大力未重启时，messages 报 `Read(ConnectionLost(ApplicationClosed))`——那是大力旧代码（未加载 Fix3）实例处理大响应的表现，大力重启后消失，**非连接问题**。
+- 中间态备忘：主机B先重启、主机A未重启时，messages 报 `Read(ConnectionLost(ApplicationClosed))`——那是主机A旧代码（未加载 Fix3）实例处理大响应的表现，主机A重启后消失，**非连接问题**。
 
 ## 六、重启姿势（避免二次踩坑）
 

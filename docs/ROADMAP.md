@@ -1,6 +1,6 @@
 # 升级路线图（ROADMAP）
 
-> 本文是 huahua-dsh-chatroom 的演进规划。事实基础：《运行机制研究与方案》（见 `docs/mechanism-study-20260904.md`）末尾"建议落地清单"6 项 + Q2/Q3/Q5 中暴露的扩展与容灾缺口。状态以本仓库发布为基线（M0）。
+> 本文是 huahua-dsh-chatroom 的演进规划。事实基础：《运行机制研究与方案》（见 `docs/mechanism-study.md`）末尾"建议落地清单"6 项 + Q2/Q3/Q5 中暴露的扩展与容灾缺口。状态以本仓库发布为基线（M0）。
 
 **工作量图例**（估算单位：人日，按熟悉双机调试环境的单人开发计）：
 S ≤ 0.5d ｜ M 0.5–3d ｜ L > 3d
@@ -140,4 +140,4 @@ R1 → F1 P2P blob（L，远期评估）
 |:--|:--|
 | 2026-09-04 | 初版：基于机制研究落地清单 6 项扩展为 M0–F1 里程碑（新增 R3 多机 onboarding、R4 host 容灾；Fix4 由"建议项"转为 M0 已落地）。 |
 
-*本文档随发布演进更新；事实溯源见 `docs/mechanism-study-20260904.md` 与各 `reports/` 报告。*
+*本文档随发布演进更新；事实溯源见 `docs/mechanism-study.md` 与各 `reports/` 报告。*
