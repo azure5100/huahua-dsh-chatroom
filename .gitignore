@@ -1,0 +1,23 @@
+# Node / package managers
+node_modules/
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# patch-weave.ps1 runtime artifacts (auto-backup of pre-patch target file)
+*.bak-portfix
+*.bak
+
+# Internal orchestration docs — kept out of the public release.
+# ASSET-INVENTORY.md is the team's working source-of-truth and carries
+# pre-sanitization references (host names, addresses, instance ids).
+docs/ASSET-INVENTORY.md
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+.idea/
+.vscode/

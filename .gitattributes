@@ -1,0 +1,7 @@
+# Normalize line endings to LF for all text files (cross-platform friendly).
+* text=auto
+*.md text eol=lf
+*.ps1 text eol=lf
+*.html text eol=lf
+*.js text eol=lf
+*.json text eol=lf

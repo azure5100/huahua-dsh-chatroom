@@ -1,0 +1,112 @@
+# huahua-dsh-chatroom
+
+> **English intro**: Cross-machine DSH group chat (dsh-chat × dsh-weave) — adapter fixes (Fix1–Fix4), mechanism research, field reports and a maintenance roadmap for the "multi-agent meeting room" setup, packed as a reproducible, publishable repo.
+
+**中文定位**：dsh-chat / dsh-weave **跨机群聊的适配修复与运维文档集**。我们在双机（丽丽 & 大力，host）联调"多 agent 会议室"的过程中，发现并修复了 dsh-weave `0.1.0-rc.14` 的四个底层缺陷（Fix1–Fix4），并把机制研究、排障与复盘报告、可视化全景图、升级规划整理成本仓库 —— 目标是让任何人能**一条命令复现修复**、读懂机制、接着往下演进。
+
+---
+
+## 1. 项目定位
+
+DSH（DeepSeek Harness）跨机群聊由三件套协作构成：
+
+| 组件 | 作用 | 版本（本项目验证基准） |
+|:--|:--|:--|
+| `dsh-chat` | 会议室/房间协议：成员、消息时间线、@ 投递、2000 条滚动窗口 | rc.33 |
+| `dsh-weave` | 跨机消息传输（Endpoint/UDP 帧通道，底层基于 Iroh，含 relay 中继） | **0.1.0-rc.14**（补丁目标） |
+| `dsh-bridge` | 本机 agent 会话桥：把投递消息 `followup` 进目标会话上下文 | rc.15 |
+
+部署拓扑为 **host-hub 星型 + weave P2P mesh + Iroh relay**：所有消息发往 host，host 权威入列后按 mentions 投递各成员（本机走 bridge、跨机走 weave）。
+
+> **上游版本事实**：dsh-weave `0.1.0-rc.14` 存在四个会导致会议室不可用的缺陷（见 §3），且修复未合入上游。本项目以"自研补丁脚本 + 差量说明"的方式发布修复，**不携带上游完整源码**（合规细节见 §8）。
+
+## 2. 功能特性
+
+- **四合一幂等补丁** `patches/patch-weave.ps1`：一次运行修复 Fix1–Fix4；重复执行自动跳过已打项（"nothing to do"）；首次执行自动备份 `index.js.bak-portfix`；写盘后自动 `node --check` 语法校验；目标文件缺失或未命中时报红字并退出码 1。
+- **机制研究文档**：6 组 Q&A 讲清"聊天记录如何进 agent 上下文 / 多机扩展 / 存储三层 / 唤醒机制 / 文件传输方案 / 使用指南"。
+- **可视化全景图**（单文件 HTML，浏览器直接打开）：拓扑架构、核心消息流、数据存储地图、上下文生命周期、补丁时间线、排障速查、@ 规则速查 7 大章节。
+- **完整排障证据链**：联调报告（过程）+ 复盘报告（根因归纳）+ Fix3 专项报告（证据链），编号成链可追溯。
+- **升级路线图**：归档提醒、附件引用协议（文件传输 L1）、agent 主动读消息工具/notifyMode、多 agent 扩展、host 高可用 —— 见 `docs/ROADMAP.md`。
+
+## 3. 四合一补丁速览（Fix1–Fix4）
+
+| Fix | 缺陷（现象/根因一句话） | 修复形态 | 版本演进 |
+|:--|:--|:--|:--|
+| **Fix1** | `#dispatch` 内无条件访问未注入的 `dshBridge` 服务 → 任何入站帧抛 "cannot get property dshBridge without inject"，消息投递全挂 | 把 dshBridge 访问包进 `try/catch`，注入缺失时优雅降级 | — |
+| **Fix2** | weave Endpoint 默认绑定**随机 UDP 端口**，重启即漂移 → peers.json 里的旧票全部失联 | schema/启动逻辑固定端口 **64605**（`DSH_WEAVE_PORT` 环境变量可覆盖），重启不再漂移 | — |
+| **Fix3** | 入站帧读取上限 64KB + ack 回执只读 `readToEnd(4096)` → `room.read` 批量历史响应超限，UI 历史空白、HTTP 500 | 帧上限 `64KB → 1MB`；ack 读满 `readToEnd(MAX_FRAME_BYTES)`（**真凶**：ack 通道 4KB 才是 RPC 响应体量上限） | 64KB → **1MB** |
+| **Fix4** | 1MB 对增量历史拉取与更大消息仍偏紧，远期有复发风险 | 帧上限 `1MB → 4MB`（脚本兼容 64KB/1MB 两种旧值，含"已打补丁则跳过"检测） | 1MB → **4MB** |
+
+> 行号级改动对照（基于上游 rc.14 `lib/index.js`）、每个 Fix 的原始代码片段与部署版落点，见 `patches/PATCH-NOTES.md`。
+
+## 4. 快速开始（打补丁）
+
+前置：Node.js；目标环境装好上游 `dsh-weave@0.1.0-rc.14`（补丁只对该版本验证过）。
+
+```powershell
+# 1.（新装时）安装上游包
+npm i dsh-weave@0.1.0-rc.14
+
+# 2. 进入含 lib/index.js 的 dsh-weave 包根目录（node_modules/dsh-weave），然后执行补丁
+powershell -ExecutionPolicy Bypass -File patches/patch-weave.ps1
+```
+
+补丁脚本行为：
+
+- 首次执行：自动备份原文件为 `index.js.bak-portfix` → 依次应用 Fix1–Fix4 → `node --check` 语法校验；
+- 再次执行：检测到已打补丁，输出 "nothing to do" 并正常退出（幂等）；
+- 目标文件缺失 / 查找串未命中：红字 WARN，退出码 1（不会破坏现场）。
+
+打完后重启 weave / DSH web profile，固定端口 64605 生效。
+
+> ⚠️ **运维铁律**：`dsh-weave` 一旦升级（`npm update` 等）会覆盖 node_modules 里的补丁 —— **升级后必须重跑本脚本**。
+
+## 5. 仓库结构与文档导航
+
+```
+huahua-dsh-chatroom/
+├─ README.md                                  ← 本文件：项目简介/资产地图/复现步骤/合规说明
+├─ docs/
+│  ├─ ASSET-INVENTORY.md                      ← 资产盘点清单（发布 source of truth）
+│  ├─ mechanism-study-20260904.md             ← 运行机制研究与方案（6 组 Q&A + 落地清单）
+│  ├─ usage-guide-20260904.md                 ← 会议室使用指南（@ 规则/成员管理/跨机配置/FAQ）
+│  ├─ dsh-chatroom-overview.html              ← 全景图看板（单文件自包含，浏览器直接打开）
+│  └─ ROADMAP.md                              ← 升级路线图（本仓库后续演进规划）
+├─ patches/
+│  ├─ patch-weave.ps1                         ← 四合一幂等补丁（Fix1–Fix4）
+│  └─ PATCH-NOTES.md                          ← 补丁说明：逐 Fix 现象/根因/改动对照 + 行号引用表 + MIT 归属
+└─ reports/
+   ├─ 01-integration-20260904.md              ← 联调报告（跨机联调全过程与教训）
+   ├─ 02-fix1fix2-retro-20260904.md           ← Fix1/Fix2 复盘（根因 A/B 归纳 + 修复 6 步 + 规避 6 条）
+   ├─ 03-fix3-frame-limit-20260904.md         ← Fix3 专项报告（证据链；历史快照，Fix4 接续）
+   └─ archive/
+      └─ web-boot-repair-20260903.md          ← （背景）web profile 启动修复，解释 dshBridge 依赖背景
+```
+
+**阅读顺序建议**：先 README（本文）→ `docs/mechanism-study-20260904.md`（机制）→ `docs/usage-guide-20260904.md`（怎么用）→ `patches/PATCH-NOTES.md`（改了什么）→ `reports/01→02→03`（怎么踩出来的）→ 打开 `dsh-chatroom-overview.html` 看图。
+
+## 6. 升级路线图
+
+本仓库不止于"修好即止"。基于机制研究落地清单，后续规划了 **归档提醒机制 → 文件传输 L1 附件引用协议 → agent 主动读消息工具 / notifyMode → 多 agent 扩展工具化 → host 高可用** 等里程碑（每项含动机、方案要点与工作量估计），详见：
+
+👉 **[docs/ROADMAP.md](docs/ROADMAP.md)**
+
+## 7. 致谢与关联项目
+
+- **上游项目**（MIT © Xiang Bai）：
+  - [`github.com/baixianger/dsh-chat`](https://github.com/baixianger/dsh-chat) —— 会议室/房间协议
+  - [`github.com/baixianger/dsh-weave`](https://github.com/baixianger/dsh-weave) —— 跨机消息传输（补丁目标）
+  - dsh-bridge —— 本机 agent 会话桥
+- **修复协作**：huahua-丽丽 & 大力（双机联调、Fix1–Fix4 定位与验证）
+- **整理发布**：huahua-dsh-chatroom-release 团队（架构 / 工程 / 文档 / 评审）
+
+## 8. 许可与合规说明
+
+- 上游 `dsh-chat` / `dsh-weave` / `dsh-bridge` 均为 **MIT 许可**（author Xiang Bai）。
+- 本仓库**不含上游完整源码**：对上游的全部修改以"自研补丁脚本（`patches/patch-weave.ps1`）+ 少量片段与行号引用（`patches/PATCH-NOTES.md`）"呈现，符合 MIT 条款并已附完整归属。
+- 仓库自研部分（补丁脚本、文档、图表、报告）遵循宽松许可发布，使用/分发时建议保留出处声明。
+- 文档中的拓扑叙述已做泛化处理（节点以"host / 成员机"表述），不包含真实 IP、peerId 全文或任何票证凭据。
+
+---
+
+*维护：huahua-dsh-chatroom-release 团队 · 基于 dsh-weave 0.1.0-rc.14 联调实证（2026-09-04）*

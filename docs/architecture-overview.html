@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>dsh-chat 会议室全景图</title>
+<style>
+  :root {
+    --bg: #0b1020; --panel: #131a2e; --panel2: #0f1526;
+    --line: #24304f; --txt: #dbe4ff; --dim: #8b96b8;
+    --acc: #4e7cff; --acc2: #22d3ee; --ok: #34d399; --warn: #fbbf24; --err: #f87171;
+    --purple: #a78bfa; --pink: #f472b6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--txt); font-family: "Segoe UI", "Microsoft YaHei", system-ui, sans-serif; line-height: 1.5; }
+  .wrap { max-width: 1280px; margin: 0 auto; padding: 20px 24px 60px; }
+
+  /* nav */
+  .nav { position: sticky; top: 0; z-index: 50; background: rgba(11,16,32,.92); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); padding: 8px 0; margin-bottom: 18px; }
+  .nav .inner { max-width: 1280px; margin: 0 auto; padding: 0 24px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .nav a { color: var(--dim); text-decoration: none; font-size: 13px; padding: 5px 12px; border-radius: 20px; border: 1px solid transparent; }
+  .nav a:hover { color: var(--txt); border-color: var(--line); background: var(--panel); }
+
+  /* header */
+  .hero { text-align: center; padding: 26px 0 8px; }
+  .hero h1 { font-size: 30px; letter-spacing: .5px; background: linear-gradient(90deg, var(--acc), var(--acc2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .hero p { color: var(--dim); margin-top: 6px; font-size: 14px; }
+  .badges { display: flex; justify-content: center; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+  .badge { font-size: 12px; padding: 4px 14px; border-radius: 20px; border: 1px solid var(--line); background: var(--panel); color: var(--dim); }
+  .badge b { color: var(--txt); }
+  .badge.g { border-color: #1e7a55; color: var(--ok); }
+  .badge.b { border-color: #2c4a9e; color: var(--acc); }
+
+  /* section */
+  section { margin-top: 26px; }
+  .s-title { font-size: 17px; font-weight: 700; display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .s-title .no { width: 26px; height: 26px; border-radius: 8px; background: linear-gradient(135deg, var(--acc), var(--purple)); display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; }
+  .s-title small { color: var(--dim); font-weight: 400; font-size: 12px; }
+  .grid { display: grid; gap: 14px; }
+  .g2 { grid-template-columns: 1fr 1fr; }
+  .g3 { grid-template-columns: repeat(3, 1fr); }
+  .g4 { grid-template-columns: repeat(4, 1fr); }
+  @media (max-width: 960px) { .g2,.g3,.g4 { grid-template-columns: 1fr; } }
+
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px; transition: transform .15s, border-color .15s, box-shadow .15s; position: relative; }
+  .card:hover { transform: translateY(-2px); border-color: var(--acc); box-shadow: 0 8px 24px rgba(78,124,255,.12); }
+  .card h3 { font-size: 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 7px; }
+  .card h3 .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .card p, .card li { font-size: 12.5px; color: var(--dim); }
+  .card ul { padding-left: 18px; }
+  .card code, .mono { font-family: Consolas, monospace; font-size: 11.5px; background: rgba(78,124,255,.12); padding: 1px 6px; border-radius: 5px; color: var(--acc2); }
+  .card .big { font-size: 22px; font-weight: 800; color: var(--txt); }
+  .tag { display: inline-block; font-size: 10.5px; padding: 1px 8px; border-radius: 10px; margin-left: 6px; vertical-align: 1px; }
+  .tag.host { background: rgba(167,139,250,.15); color: var(--purple); }
+  .tag.member { background: rgba(244,114,182,.13); color: var(--pink); }
+  .tag.done { background: rgba(52,211,153,.13); color: var(--ok); }
+  .tag.wait { background: rgba(251,191,36,.13); color: var(--warn); }
+
+  /* flow (message path) */
+  .flow { display: flex; align-items: stretch; gap: 0; flex-wrap: wrap; }
+  .f-node { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; min-width: 130px; flex: 1; text-align: center; font-size: 12px; }
+  .f-node b { display: block; font-size: 12.5px; color: var(--txt); margin-bottom: 2px; }
+  .f-node small { color: var(--dim); font-size: 10.5px; line-height: 1.35; display: block; }
+  .f-node .k { color: var(--acc2); }
+  .f-arrow { display: flex; align-items: center; padding: 0 6px; color: var(--dim); font-size: 16px; }
+  .f-arrow .lbl { font-size: 10px; color: var(--dim); writing-mode: horizontal-tb; text-align: center; }
+
+  /* topology */
+  .topo { display: flex; align-items: center; justify-content: center; gap: 0; flex-wrap: wrap; padding: 8px 0; }
+  .machine { border: 1px solid var(--line); border-radius: 16px; padding: 12px; background: var(--panel2); min-width: 240px; }
+  .machine .mh { font-size: 13px; font-weight: 700; padding-bottom: 8px; border-bottom: 1px dashed var(--line); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+  .machine .comp { font-size: 11.5px; padding: 4px 8px; margin: 3px 0; border-radius: 7px; background: var(--panel); border: 1px solid var(--line); color: var(--dim); }
+  .machine .comp b { color: var(--txt); }
+  .machine.host .mh { color: var(--purple); }
+  .machine.member .mh { color: var(--pink); }
+  .link-v { display: flex; flex-direction: column; align-items: center; color: var(--dim); font-size: 10.5px; padding: 0 8px; text-align: center; }
+  .link-v .bar { width: 2px; height: 34px; background: var(--acc); border-radius: 2px; margin: 4px 0; }
+  .link-v .bar.relay { background: repeating-linear-gradient(180deg, var(--warn) 0 4px, transparent 4px 8px); height: 22px; }
+
+  /* timeline */
+  .tl { display: flex; gap: 0; overflow-x: auto; padding-bottom: 8px; }
+  .tl-item { flex: 1; min-width: 180px; border-left: 3px solid var(--acc); padding: 0 14px 10px; position: relative; }
+  .tl-item::before { content: ""; position: absolute; left: -7px; top: 0; width: 11px; height: 11px; border-radius: 50%; background: var(--acc); }
+  .tl-item h4 { font-size: 13px; }
+  .tl-item p { font-size: 11.5px; color: var(--dim); margin-top: 4px; }
+  .tl-item .st { font-size: 10.5px; font-weight: 700; }
+
+  /* matrices */
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+  th { color: var(--dim); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+  td code { background: transparent; padding: 0; }
+  .hl-row:hover { background: rgba(78,124,255,.07); }
+
+  /* legend & footnote */
+  .legend { display: flex; gap: 18px; flex-wrap: wrap; color: var(--dim); font-size: 12px; margin-top: 10px; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+  .foot { text-align: center; color: var(--dim); font-size: 12px; margin-top: 34px; border-top: 1px solid var(--line); padding-top: 16px; }
+</style>
+</head>
+<body>
+<div class="nav"><div class="inner">
+  <b style="color:var(--txt);font-size:13px">📡 dsh-chat 全景</b>
+  <a href="#topo">① 拓扑架构</a>
+  <a href="#flow">② 消息流</a>
+  <a href="#store">③ 数据存储</a>
+  <a href="#ctx">④ 上下文</a>
+  <a href="#patch">⑤ 补丁</a>
+  <a href="#ops">⑥ 排障速查</a>
+  <a href="#at">⑦ @ 规则</a>
+</div></div>
+
+<div class="wrap">
+<div class="hero">
+  <h1>dsh-chat 会议室 · 系统全景图</h1>
+  <p>跨机 weave 群聊 · 双端运行中（host=大力 / member=丽丽）· 文档归档 gbrain</p>
+  <div class="badges">
+    <span class="badge b">运行 <b>80+</b> 条消息</span>
+    <span class="badge g">Fix1-3 已生效</span>
+    <span class="badge">Fix4 待重启生效</span>
+    <span class="badge b">帧上限 1MB→4MB</span>
+    <span class="badge">weave UDP <b>64605</b></span>
+  </div>
+</div>
+
+<!-- ============ 1 拓扑 ============ -->
+<section id="topo">
+  <div class="s-title"><span class="no">1</span> 拓扑架构 <small>host-hub 星型 + weave P2P + relay 兜底</small></div>
+  <div class="topo">
+    <div class="machine member">
+      <div class="mh">🖥 丽丽机 <span class="tag member">MEMBER</span></div>
+      <div class="comp"><b>Web UI</b> RoomTimeline 实时拉取</div>
+      <div class="comp"><b>dsh-chat</b> linked room · cursor 缓存</div>
+      <div class="comp"><b>dsh-weave</b> peer a5f92c23…</div>
+      <div class="comp"><b>dsh-bridge</b> followup 投递</div>
+      <div class="comp" style="font-size:10.5px">IP 192.168.1.3 · 会话 DSH-丽丽</div>
+    </div>
+    <div class="link-v">weave 直连<span class="bar"></span>UDP 64605</div>
+    <div class="machine host">
+      <div class="mh">🖥 大力机 <span class="tag host">HOST · 权威</span></div>
+      <div class="comp"><b>dsh-chat</b> 房间权威入列/投递</div>
+      <div class="comp"><b>rooms.json</b> 全量 2000 条窗口</div>
+      <div class="comp"><b>dsh-weave</b> peer f7bd62da…</div>
+      <div class="comp" style="font-size:10.5px">IP 192.168.1.168 · host 会话 dsh-大力</div>
+    </div>
+    <div class="link-v" style="flex-direction:column"><span class="bar relay"></span>relay 兜底 euc1-1</div>
+    <div class="machine" style="border-style:dashed">
+      <div class="mh">🌐 Iroh Relay <span class="tag wait">兜底</span></div>
+      <div class="comp">euc1-1.relay.n0.iroh.link</div>
+      <div class="comp">跨网/换 IP 时按 peerId 互达</div>
+    </div>
+  </div>
+  <div class="legend" style="justify-content:center">
+    <span><i style="background:var(--acc)"></i> weave P2P 直连（局域网 UDP 64605）</span>
+    <span><i style="background:repeating-linear-gradient(180deg,var(--warn) 0 3px,transparent 3px 6px)"></i> Iroh relay（打洞失败兜底）</span>
+  </div>
+</section>
+
+<!-- ============ 2 消息流 ============ -->
+<section id="flow">
+  <div class="s-title"><span class="no">2</span> 核心消息流 <small>发消息 / 读历史 / agent 投递（三种路径）</small></div>
+  <div class="grid" style="gap:18px">
+    <div class="card" style="grid-column:1/-1">
+      <h3><span class="dot" style="background:var(--ok)"></span> A. 发消息（谁都能发，host 权威入列）</h3>
+      <div class="flow">
+        <div class="f-node"><b>发送方</b><small>UI 人类 或 agent <span class="k">chat_send</span></small></div>
+        <div class="f-arrow">→</div>
+        <div class="f-node"><b>Host 权威</b><small><span class="k">room.post</span> 校验 capability</small></div>
+        <div class="f-arrow">→</div>
+        <div class="f-node"><b>入列</b><small>rooms.json push + cursor+1</small></div>
+        <div class="f-arrow">→</div>
+        <div class="f-node"><b>#deliver 按 @ 过滤</b><small>只投 mentions 命中者</small></div>
+        <div class="f-arrow">→</div>
+        <div class="f-node"><b>投递</b><small>本机 bridge / 跨机 weave<br>失败入 pendingDeliveries 30s 重试</small></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3><span class="dot" style="background:var(--acc2)"></span> B. UI 读历史（实时增量）</h3>
+      <div class="flow" style="flex-direction:column;gap:6px">
+        <div class="f-node" style="min-width:0;text-align:left"><b>RoomTimeline 打开即 poll</b><small>循环调 <span class="k">/dsh-chat/messages</span>（首次立即、之后 25s 阻塞等新消息）</small></div>
+        <div style="text-align:center;color:var(--dim)">↓</div>
+        <div class="f-node" style="min-width:0;text-align:left"><b>本地 chat 服务 #readHost</b><small>向 host 发 <span class="k">room.read</span>（带本地 cursor 增量请求）</small></div>
+        <div style="text-align:center;color:var(--dim)">↓</div>
+        <div class="f-node" style="min-width:0;text-align:left"><b>host 返回增量 events + 权威 members</b><small>按<u>消息 id 去重</u>合并进本地缓存 → cursor=host cursor → 落盘 rooms.json → UI 显示全部</small></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3><span class="dot" style="background:var(--purple)"></span> C. agent 收消息（被动投递）</h3>
+      <div class="flow" style="flex-direction:column;gap:6px">
+        <div class="f-node" style="min-width:0;text-align:left"><b>你被 @（或 @all）</b><small>mention 精确命中成员 → host 触发投递</small></div>
+        <div style="text-align:center;color:var(--dim)">↓</div>
+        <div class="f-node" style="min-width:0;text-align:left"><b>dsh-bridge deliverExternal</b><small><span class="k">target.followup(createUserMessage)</span> → 作为带前缀用户消息插入你的会话</small></div>
+        <div style="text-align:center;color:var(--dim)">↓</div>
+        <div class="f-node" style="min-width:0;text-align:left"><b>像普通对话一样加载进 LLM 上下文</b><small>⚠️ 你的回复只在会话内，要出现在房间需再调 <span class="k">chat_send</span></small></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 3 存储 ============ -->
+<section id="store">
+  <div class="s-title"><span class="no">3</span> 数据存储地图 <small>同一房间在四处的不同角色</small></div>
+  <div class="grid g4">
+    <div class="card">
+      <h3>🏛 Host rooms.json <span class="tag host">权威</span></h3>
+      <p class="big" style="color:var(--purple)">全量</p>
+      <ul>
+        <li>所有消息（<b>2000 条滚动窗口</b>，超裁最老+messageOffset 位移）</li>
+        <li>members 权威、pendingDeliveries（TTL 7 天）</li>
+        <li>每条 message.deliveries 投递状态</li>
+      </ul>
+      <p style="margin-top:6px">📄 <code>~/.dsh/dsh-chat/rooms.json</code>（大力机）</p>
+    </div>
+    <div class="card">
+      <h3>🗂 成员端缓存 <span class="tag member">只读</span></h3>
+      <p class="big" style="color:var(--pink)">cursor + 缓存</p>
+      <ul>
+        <li>同 id 房间：cursor 序号 + 已拉取消息副本</li>
+        <li>host 离线时仍可看已缓存部分</li>
+        <li>靠 UI 打开房间时的 readHost 增量补齐</li>
+      </ul>
+      <p style="margin-top:6px">📄 <code>~/.dsh/dsh-chat/rooms.json</code>（丽丽机）</p>
+    </div>
+    <div class="card">
+      <h3>🎨 UI 载体会话</h3>
+      <p class="big" style="color:var(--acc2)">710B</p>
+      <ul>
+        <li>房间会话 <code>dsh-chat-room-v3-&lt;id&gt;</code></li>
+        <li>只含 chat/room-link 种子事件 → 驱动 RoomTimeline 渲染</li>
+        <li><b>消息不落这里</b></li>
+      </ul>
+      <p style="margin-top:6px">📄 <code>~/.dsh/sessions/…/</code></p>
+    </div>
+    <div class="card">
+      <h3>📜 会话日志 zstd</h3>
+      <p class="big" style="color:var(--ok)">全量持久</p>
+      <ul>
+        <li>每个会话完整对话日志 <code>session.jsonl.zstd</code></li>
+        <li>丽丽 ~8.6MB / 大力 ~9.5MB（长对话积累）</li>
+        <li>压缩不影响日志，随时可回看/导出</li>
+      </ul>
+      <p style="margin-top:6px">备份 host rooms.json = 全量聊天备份</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 4 上下文 ============ -->
+<section id="ctx">
+  <div class="s-title"><span class="no">4</span> 上下文与生命周期 <small>会议消息如何影响 agent 上下文 & 防爆</small></div>
+  <div class="grid g3">
+    <div class="card">
+      <h3><span class="dot" style="background:var(--acc)"></span> 进上下文</h3>
+      <p>每条 @ 投递 = 一条带前缀用户消息进会话，<b>像正常对话一样占 LLM 窗口</b>（受模型上下文限制）。实测单条 ≈1.3KB，80 条 ≈100KB，日常占比小但高频会累积。</p>
+    </div>
+    <div class="card">
+      <h3><span class="dot" style="background:var(--ok)"></span> 自动压缩（实测在跑 ✅）</h3>
+      <p>token 达窗口 <b>80%</b> → 早期历史压成 checkpoint 摘要 + <b>保留尾部 16% 原文</b> → 会话不爆。日志 zstd 全量保留不受影响。你见过的那种「automatically generated checkpoint」摘要就是它。</p>
+    </div>
+    <div class="card">
+      <h3><span class="dot" style="background:var(--warn)"></span> 有界历史</h3>
+      <p>房间消息 <b>2000 条窗口</b>裁剪最老；UI 显示最近 200 条。重要结论建议归档 gbrain / 记忆，别只靠聊天记录（会被裁剪/压缩）。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 5 补丁 ============ -->
+<section id="patch">
+  <div class="s-title"><span class="no">5</span> 补丁时间线 <small>dsh-weave rc.14 三+一补丁（patch-weave.ps1 四合一，升级后重跑全覆盖）</small></div>
+  <div class="tl">
+    <div class="tl-item">
+      <h4>Fix1 · inject bug</h4>
+      <p class="st" style="color:var(--ok)">✅ 生效</p>
+      <p>入站帧访问未注入 dshBridge 抛错 → 包 try/catch</p>
+    </div>
+    <div class="tl-item">
+      <h4>Fix2 · 固定端口</h4>
+      <p class="st" style="color:var(--ok)">✅ 生效</p>
+      <p>Endpoint 绑 UDP <b>64605</b>（DSH_WEAVE_PORT 可覆盖）→ 重启不再漂移、票不失效</p>
+    </div>
+    <div class="tl-item">
+      <h4>Fix3 · 帧大小 1MB</h4>
+      <p class="st" style="color:var(--ok)">✅ 生效</p>
+      <p>ack 读取 <b>4KB→1MB</b>（历史批量响应 TooLong→UI 500 的根因）；入站 64KB→1MB</p>
+    </div>
+    <div class="tl-item">
+      <h4>Fix4 · 帧大小 4MB</h4>
+      <p class="st" style="color:var(--warn)">⏳ 大力已生效 / 丽丽待重启</p>
+      <p>1MB→4MB，覆盖 2000 条窗口最坏增量 + 单条大消息裕量</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 6 排障 ============ -->
+<section id="ops">
+  <div class="s-title"><span class="no">6</span> 排障速查 <small>实战踩坑三次后的经验（详见 gbrain）</small></div>
+  <div class="grid g3">
+    <div class="card">
+      <h3>UI 500「看不到历史」</h3>
+      <p>→ 宿主 RPC 层挖真实错误：重放 <code>/dsh-chat/messages</code>（client-request JSON）→ <b>TooLong</b> = Iroh readToEnd 超限（ack 4KB 通道）。<b>Fix3 根治。</b></p>
+    </div>
+    <div class="card">
+      <h3>ConnectionLost</h3>
+      <p>→ host <b>重启后 weave 渐近就绪 2-3 分钟</b>，期间被当未信任 peer 直接关连接。先等窗口期再测；小请求(catalog)通+大响应断≠帧问题，先分清。</p>
+    </div>
+    <div class="card">
+      <h3>「not a member of this room」</h3>
+      <p>→ 成员状态间歇失效（重启覆盖权威状态）。agent 侧 <b>chat_join 重加</b>再发；UI 侧刷新。勿手改 rooms.json（运行时用内存态）。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 7 @ 规则 ============ -->
+<section id="at">
+  <div class="s-title"><span class="no">7</span> @ 规则速查 <small>唤醒=点对点；存储=点对会议室（不 @ 只留档不唤醒）</small></div>
+  <div class="card">
+    <table>
+      <tr><th>意图</th><th>做法</th><th>效果</th></tr>
+      <tr class="hl-row"><td>找丽丽办事</td><td><code>@DSH-丽丽</code></td><td>丽丽收到并响应</td></tr>
+      <tr class="hl-row"><td>找大力</td><td><code>@dsh-大力</code></td><td>大力响应</td></tr>
+      <tr class="hl-row"><td>全体讨论/汇报</td><td><code>@all</code></td><td>全员唤醒（token × N，控制频率）</td></tr>
+      <tr class="hl-row"><td>记录/通知不需回应</td><td>直接发不 @</td><td>时间线留档，不打扰任何 agent</td></tr>
+    </table>
+    <p style="margin-top:10px">⚠️ <b>铁律：不 @ = agent 收不到</b>（防打扰设计，避免每条消息唤醒全部 agent 烧 token）。人类在 UI 时间线可见全部。</p>
+  </div>
+</section>
+
+<div class="foot">
+  dsh-chat rc.33 · dsh-weave rc.14 · dsh-bridge rc.15 ｜ 全景绘制：丽丽（2026-09-04）<br>
+  详细机制研究 → gbrain <code>nango-dsh-weave-mechanism-study-20260904</code>；修复记录 → <code>nango-dsh-weave-fix3-frame-limit-20260904</code>；复盘 → <code>nango-dsh-weave-复盘-20260904</code>
+</div>
+</div>
+</body>
+</html>
