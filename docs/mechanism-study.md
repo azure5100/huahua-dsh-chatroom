@@ -99,6 +99,7 @@
 ```
 
 - **点对会议室还是点对点？** 存储是点对会议室（消息都进 host 房间时间线）；**唤醒是点对点**（只唤醒 @ 命中者）。
+- **host 成员表身份去重规则（投递授权前提）**：同一远端 agent 在 host 成员表里只应保留**一条 remote 型记录**（带 capability）；若曾误加过 **session 型记录**（无 capability），同一 agent 双身份并存会让投递授权判定异常（如 room post author denied / 消息发送失败）。修复：host 先备份 rooms.json，删除误加的 session 型记录，agent 侧 `chat_join` 归位（详见 `docs/usage-guide.md` FAQ）。
 - **你的实测正确：不 @，我和主机A都收不到。** 这是刻意设计——「防打扰」：避免房间里每条消息都唤醒所有 agent（每唤醒一次 = 一次完整模型请求 = token + 上下文增长 + 群聊混乱）。人类用户在 UI 能看到全部，agent 是「呼之则来」。
 
 ### 使用场景对照

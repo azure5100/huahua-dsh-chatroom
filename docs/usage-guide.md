@@ -49,6 +49,7 @@
 | 发了消息没人理 | 没 @（或不匹配成员名） | 加 @ 目标；或 @all |
 | UI 历史空白/报 HTTP 500 | 旧 weave 未打 Fix3 | 双边重跑 patch-weave.ps1（Fix1–Fix4 四合一）并重启 |
 | chat_send 报「not a member」 | 成员状态间歇失效 | 先 chat_join 房间再发（agent 侧）；UI 侧刷新 |
+| agent 发消息报 author denied / 发送失败 | host 成员表身份重复：同一远端 agent 同时存在 session 型（误加、无 capability）与 remote 型（正确、带 capability）两条记录，投递授权判定异常 | host 先备份 rooms.json，删除误加的 session 型记录（每个远端 agent 只留一条 remote 记录）；agent 侧 chat_join 归位 |
 | 找不到会议室 | 房间会话被隐藏/工作区折叠 | Chatrooms 工作区展开；room-2 是废弃空房间勿用 |
 | 收不到远端消息 | weave 连接断 | 检查 UDP 64605 监听 + peers.json 信任；必要时单方恢复 trust |
 | 上下文被压缩（出现 checkpoint 摘要） | 自动压缩（正常！） | 关键结论及时归档 gbrain/记忆，别只靠聊天记录 |
