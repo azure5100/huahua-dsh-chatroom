@@ -55,6 +55,7 @@
 | 上下文被压缩（出现 checkpoint 摘要） | 自动压缩（正常！） | 关键结论及时归档 gbrain/记忆，别只靠聊天记录 |
 | 装本地 link: 插件后 DSH 启动失败（ERR_MODULE_NOT_FOUND @deepseek-ai/*） | 插件物理目录（如 D 盘裸目录）无父级 node_modules，无法解析 @deepseek-ai/* peer 包（flat fallback 只对 profile 树内包生效） | 给插件源码目录建 junction：`mklink /J <插件目录>\node_modules %USERPROFILE%\.dsh\profiles\node_modules`（引用 host 同源版本，可逆） |
 | 插件启动报 UNSUPPORTED_SCHEMA / parameters must be an object of value schemas | 插件按新版 dsh-tools 契约写（Schema.object/实例），host 是旧版契约 | 适配 host 契约：`defineTool` 的 `parameters` 用属性字典 + raw JSON-schema 值（`{ name: { type, required, description } }`）；以 host 实际 dsh-tools 版本为准 |
+| 装第二个插件后启动失败（duplicate loader entry id / loader entry 冲突） | 两个插件的 cordis.patch.yml 都插**相同行 id**（如两个 dsh-bridge 版本都插 `dsh-bridge` 行），loader 拒绝重复 entry id 整树启动崩 | 冲突方**不进 bundles**，在用户层 `cordis.patch.yml` 改名挂载：`- insert: [{ id: <唯一新id>, name: '<包名>' }]`（如 baixianger dsh-bridge 与 @wenbin_wb/dsh-bridge 共存 → wenbin 版用行 id `dsh-bridge-tunnel`）。npm 包名 scoped 不同不算冲突，只需处理**行 id**；自研插件行 id 取唯一命名（如 `dsh-chatroom-kit`）避开三件套 |
 
 ## 7. Agent 侧操作速查（给接入的 agent）
 
