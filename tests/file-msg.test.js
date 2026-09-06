@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { extractFileUrls, formatFileMsg, parseFileMsgLine, formatBytes } from '../lib/file-msg.js';
+import { extractFileUrls, formatFileMsg, parseFileMsgLine, formatBytes, chatFileUrl } from '../lib/file-msg.js';
 
 test('formatFileMsg canonical + roundtrip', () => {
   const meta = { name: '报告.pdf', size: 2411724, url: 'http://192.168.1.3:3090/chat-file/abc123?room=roomA' };
@@ -47,6 +47,12 @@ test('formatBytes labels', () => {
   assert.equal(formatBytes(512 * 1024), '512KB');
   assert.equal(formatBytes(2411724), '2.3MB');
   assert.equal(formatBytes(0), '0B');
+});
+
+test('chatFileUrl builds cross-machine url from public base', () => {
+  const u = chatFileUrl('http://192.168.1.3:3090/', 'abc123', 'room A/1');
+  assert.equal(u, 'http://192.168.1.3:3090/chat-file/abc123?room=room%20A%2F1');
+  assert.equal(chatFileUrl('http://h:1', 'x', 'r'), 'http://h:1/chat-file/x?room=r');
 });
 
 test('name containing parentheses survives parse', () => {
