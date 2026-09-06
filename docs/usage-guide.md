@@ -53,6 +53,8 @@
 | 找不到会议室 | 房间会话被隐藏/工作区折叠 | Chatrooms 工作区展开；room-2 是废弃空房间勿用 |
 | 收不到远端消息 | weave 连接断 | 检查 UDP 64605 监听 + peers.json 信任；必要时单方恢复 trust |
 | 上下文被压缩（出现 checkpoint 摘要） | 自动压缩（正常！） | 关键结论及时归档 gbrain/记忆，别只靠聊天记录 |
+| 装本地 link: 插件后 DSH 启动失败（ERR_MODULE_NOT_FOUND @deepseek-ai/*） | 插件物理目录（如 D 盘裸目录）无父级 node_modules，无法解析 @deepseek-ai/* peer 包（flat fallback 只对 profile 树内包生效） | 给插件源码目录建 junction：`mklink /J <插件目录>\node_modules %USERPROFILE%\.dsh\profiles\node_modules`（引用 host 同源版本，可逆） |
+| 插件启动报 UNSUPPORTED_SCHEMA / parameters must be an object of value schemas | 插件按新版 dsh-tools 契约写（Schema.object/实例），host 是旧版契约 | 适配 host 契约：`defineTool` 的 `parameters` 用属性字典 + raw JSON-schema 值（`{ name: { type, required, description } }`）；以 host 实际 dsh-tools 版本为准 |
 
 ## 7. Agent 侧操作速查（给接入的 agent）
 
