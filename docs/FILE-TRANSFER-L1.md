@@ -2,6 +2,7 @@
 
 > 项目：huahua-dsh-chatroom ｜ 里程碑：R1（ROADMAP L64-78）｜ 路线：**A —— 零 dsh-chat 改动**
 > 状态：🔧 实施中（2026-09-06 启动）｜ 事实溯源：`docs/mechanism-study.md` Q5、`docs/ROADMAP.md` R1
+> 实现注记：host rc.5 的 defineTool `parameters` 用字典写法（rc.7 数组写法不兼容）——适配随 commit 363fbaa 落地；跨机 URL 用 config.filePublicBase（默认 http://127.0.0.1:<port>）。
 
 ## 0. 定位
 
