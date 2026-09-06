@@ -113,6 +113,11 @@ certutil -hashfile D:\tmp\big.down.bin SHA256
 ✅ **agent 层跨机链路 PASS（2026-09-06）**：kit 装入 A 机宿主（新 host 运行、3090 内嵌 file-server），`chatroom_file_upload` → `filePublicBase` LAN URL（`http://192.168.1.3:3090/chat-file/…`）→ B 机大力下载 1,572,864B，sha256=`a6aa3be3296f0791990e4e91c9ce3036ef1d83065fcf25e62390343a9f78a37d` 与上传一致 → **R1 全链路验收完成**（HTTP A→B / B→A / agent 工具 / 跨机 LAN URL 全闭环）。
 测试已落库：`tests/file-server.test.js`（5 用例）+ `tests/file-msg.test.js`（8 用例），全仓 `node --test` 通过（19/19+）。
 后续可选：房间内 agent 完整互传（含大力侧 kit 重启后的端到端消息流）。
+✅ **房间内 agent 双向互传闭环（2026-09-06）**：kit 装入 A/B 双机（A rc.5 / B rc.2 均可用），filePublicBase 各自指向本机 LAN IP：
+- **A→B**：A 机 agent `chatroom_file_upload` → LAN URL → B 机下载校验一致；
+- **B→A**：B 机 agent upload（LAN URL `http://192.168.1.168:3090/chat-file/f1594b6a…`，59B 含时间戳）→ A 机跨机 fetch，sha256=`3ec6bf1a12540898a5c7d21a07b71c45f68f80796dbb3c69fc79cfdfe32c25e1` 双向一致（X-SHA256 匹配）；
+- 防火墙放行（双机 3090 入站）+ 消息窗口仅增文件文本行（几十字节）。
+→ **R1 文件传输 L1 全量收官**（HTTP 双向 + agent 双向 + 双机 kit 环境兼容）。
 
 ## 7. 安全与边界（v1）
 
