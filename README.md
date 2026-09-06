@@ -22,6 +22,7 @@ DSH（DeepSeek Harness）跨机群聊由三件套协作构成：
 
 ## 2. 功能特性
 
+- **🚀 跨机文件传输（R1 里程碑，双机实测闭环）**：附件引用协议（文件本体走 LAN HTTP、消息只传 `[文件] name (size) url` 元数据行、`X-SHA256` 校验头）——`chatroom_file_upload` → LAN URL → `chatroom_file_fetch` 跨机下载 sha256 一致。**HTTP 双向（A→B / B→A）与 agent 层双向房间互传全部双机实测通过**（1.5MB，消息窗口只增几十字节），kit 在 dsh-tools rc.5 / rc.2 双环境可用。见 `docs/FILE-TRANSFER-L1.md`（含完整验收记录）。聊天室从「只能传文本」升级为**跨机文件协作**。
 - **四合一幂等补丁** `patches/patch-weave.ps1`：一次运行修复 Fix1–Fix4；重复执行自动跳过已打项（"nothing to do"）；首次执行自动备份 `index.js.bak-portfix`；写盘后自动 `node --check` 语法校验；目标文件缺失时报红字并以退出码 1 结束；单个 Fix 目标串未命中仅红字 WARN 提示人工核对（新版上游可能已变动），不中断、不视为失败（幂等友好）。
 - **DSH 插件（dsh.bundle）**：仓库根即插件包（name `huahua-dsh-chatroom`，loader 行 id `dsh-chatroom-kit`）——装好后启动即自动守护 weave 补丁（缺 Fix1–Fix4 则备份重打并提示重启生效），并新增 `chatroom_patch_status` / `chatroom_patch_apply` 两个 agent 工具与 `/dsh-chatroom` host RPC（见 §4 方式二）。
 - **完整核心代码快照** `upstream-patched/`：dsh-chat / dsh-weave / dsh-bridge 整包副本（dsh-weave 为 Fix1–Fix4 已打补丁版），满足"看全部代码"需求，出处与版权见 `upstream-patched/UPSTREAM-PATCHED.md`。
