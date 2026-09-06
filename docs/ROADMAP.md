@@ -19,7 +19,7 @@ S ≤ 0.5d ｜ M 0.5–3d ｜ L > 3d
 | P1 | 会议室使用规范（@ 点名 / @all 群议 / 不 @ 留档） | 约定 | 📌 | 0 | — |
 | P2 | 归档提醒机制（2000 条窗口备份） | 约定→脚本 | 📌→🔧 | S | — |
 | P3 | 上下文观察规范（compaction / 重要结论入知识库） | 约定 | 📌 | 0 | — |
-| R1 | 文件传输 L1：附件引用协议 | 开发 | 🔧 | M | M0 |
+| R1 | 文件传输 L1：附件引用协议 | 开发 | 🔧 实施中（路线A） | M | M0 |
 | R2 | agent 主动读消息工具 + notifyMode（值班模式） | 开发 | 🔧 | M | M0 |
 | R3 | 多 agent / 多机扩展工具化（批量 trust + 成员 onboarding） | 开发 | 🔧 | S | M0 |
 | R4 | host 高可用与容灾迁移 | 开发 | 🔧 | M | P2 |
@@ -61,7 +61,9 @@ S ≤ 0.5d ｜ M 0.5–3d ｜ L > 3d
 - **验收**：重要结论有会话外落点。
 - **状态**：随 M0 交付并持续执行。
 
-## R1 · 文件传输 L1：附件引用协议（🔧 M）
+## R1 · 文件传输 L1：附件引用协议（🔧 M · 实施中，路线 A）
+
+> **2026-09-06 启动实施**：规格见 [`docs/FILE-TRANSFER-L1.md`](FILE-TRANSFER-L1.md)。路线 A=零 dsh-chat 改动：kit 插件承载附件存储（`~/.dsh/dsh-chat/attachments/<roomId>/`）与 HTTP 端点（默认端口 3090）+ `chatroom_file_upload/fetch` agent 工具；消息走规范文本（`[文件] 名称 (大小) <url>`）。验收同下（>1MB / 窗口仅增几十字节 / sha256）。
 
 - **动机**：Q5 —— 现状**不支持文件传输**：dsh-chat 消息模型只有 text（`ensureText`），无附件字段；weave 帧是 JSON 文本通道（Fix4 后 4MB，base64 嵌入实际可用 ~3MB 且挤占消息窗口）；现有 dsh-at-file / dsh-share 都不是房间内文件传输。
 - **方案要点**（消息传元数据，文件走 HTTP）：
@@ -139,5 +141,6 @@ R1 → F1 P2P blob（L，远期评估）
 | 日期 | 变更 |
 |:--|:--|
 | 2026-09-04 | 初版：基于机制研究落地清单 6 项扩展为 M0–F1 里程碑（新增 R3 多机 onboarding、R4 host 容灾；Fix4 由"建议项"转为 M0 已落地）。 |
+| 2026-09-06 | R1 启动实施（路线 A：零 dsh-chat 改动，kit 承载附件存储+HTTP+agent 工具）；新增规格 `docs/FILE-TRANSFER-L1.md`；全景表状态列同步。 |
 
 *本文档随发布演进更新；事实溯源见 `docs/mechanism-study.md` 与各 `reports/` 报告。*

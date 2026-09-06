@@ -152,6 +152,8 @@
 
 weave 底层就是 Iroh（原生支持 content-addressed blob 分发、断点续传、多端拉取）——扩展 dsh-weave 暴露 `sendBlob(peerId, path)` 即可实现 P2P 文件直传，不经 host。改动最深，不建议近期做。
 
+> **落地进展（2026-09-06）**：R1（文件传输 L1）已按**路线 A** 启动实施——零 dsh-chat 改动，附件存储与 HTTP 端点由本仓库 kit 插件承载；完整规格见 [`docs/FILE-TRANSFER-L1.md`](FILE-TRANSFER-L1.md)。上文 L0 过渡方案仍随时可用。
+
 ---
 
 ## Q6：使用指南 → 单独文档《dsh会议室使用指南》

@@ -26,3 +26,7 @@ desktop.ini
 *.swp
 .idea/
 .vscode/
+
+# R1 integration-test scratch (never commit)
+.test-*
+
