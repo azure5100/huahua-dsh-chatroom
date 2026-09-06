@@ -110,7 +110,9 @@ certutil -hashfile D:\tmp\big.down.bin SHA256
 **验收状态（实时）**：✅ **双向 HTTP 闭环（2026-09-06）**
 - **A→B**：1.5MB（1536KB）经 B 机下载，sha256=`01c7f068dc601f8d3456c673a3ed41384e8b252db7fa106b7af862e6f77e2800` 一致，未受防火墙拦截；
 - **B→A**：大力 B 机上传 r1-b2a.bin（1572864B，id=`76e04586d7ea4e3cb0201f74c7f8e6d5`，roomB），A 侧下载复核 sha256=`106f0647ae10a6516b1ab2968038161e287ef40d1b22ca047531ed768e594ef1` 一致（X-SHA256 匹配）。
-待办：agent/房间层联测（kit 安装+重启，路线 A 消息层）。测试已落库：`tests/file-server.test.js`（5 用例，真实 HTTP roundtrip）+ `tests/file-msg.test.js`（7 用例），`node --test` 全仓 19/19 PASS。
+✅ **agent 层跨机链路 PASS（2026-09-06）**：kit 装入 A 机宿主（新 host 运行、3090 内嵌 file-server），`chatroom_file_upload` → `filePublicBase` LAN URL（`http://192.168.1.3:3090/chat-file/…`）→ B 机大力下载 1,572,864B，sha256=`a6aa3be3296f0791990e4e91c9ce3036ef1d83065fcf25e62390343a9f78a37d` 与上传一致 → **R1 全链路验收完成**（HTTP A→B / B→A / agent 工具 / 跨机 LAN URL 全闭环）。
+测试已落库：`tests/file-server.test.js`（5 用例）+ `tests/file-msg.test.js`（8 用例），全仓 `node --test` 通过（19/19+）。
+后续可选：房间内 agent 完整互传（含大力侧 kit 重启后的端到端消息流）。
 
 ## 7. 安全与边界（v1）
 
