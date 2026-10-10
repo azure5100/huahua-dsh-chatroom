@@ -1,6 +1,6 @@
 {
   "name": "huahua-dsh-chatroom",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "dsh-chatroom kit plugin: dsh-weave Fix1-Fix4 patch guard + chatroom_* agent tools + /dsh-chatroom host RPC.",
   "type": "module",
   "main": "./lib/index.js",
@@ -29,8 +29,8 @@
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "^4.0.1",
-    "@deepseek-ai/dsh-tools": "^0.1.0-rc.7",
-    "@deepseek-ai/dsh-typert-protocol": "^0.1.0-rc.7",
+    "@deepseek-ai/dsh-tools": "^0.1.0-rc.7 || ^0.2.0-rc.2",
+    "@deepseek-ai/dsh-typert-protocol": "^0.1.0-rc.7 || ^0.2.0-rc.2",
     "@deepseek-ai/schemastery": "^3.18.1"
   },
   "license": "MIT"

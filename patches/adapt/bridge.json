@@ -1,0 +1,31 @@
+{
+  "package": "dsh-bridge",
+  "adaptedFrom": "0.1.0-rc.15",
+  "target": "0.2.0-rc.2",
+  "files": [
+    {
+      "path": "lib/index.js",
+      "action": "replace",
+      "edits": [
+        {
+          "marker": "\t\t\t\ttype: \"text\",\n\t\t\t\ttext: `[dsh-bridge ${transport} message ${id} from ${message.from}]\\n${text}`\n\t\t\t}],\n\t\t\t// 0.2.0 (session format v4): \"plugin\" is a retired source wrapper and native\n\t\t\t// admission refuses it (\"format v4 message requires a producer-owned source\n\t\t\t// kind\"). A third-party plugin's producer-owned kind is `plugin:<pkg name>`\n\t\t\t// (see @deepseek-ai/dsh-session-format-v3-to-v4's V3 rewrite fallback).\n\t\t\tsource: {\n\t\t\t\tkind: `plugin:${name}`,\n\t\t\t\tform: transport\n\t\t\t}\n\t\t}));",
+          "absent": "\t\t\t\tkind: \"plugin\",",
+          "old": "\t\t\t\ttype: \"text\",\n\t\t\t\ttext: `[dsh-bridge ${transport} message ${id} from ${message.from}]\\n${text}`\n\t\t\t}],\n\t\t\tsource: {\n\t\t\t\tkind: \"plugin\",\n\t\t\t\tplugin: name,\n\t\t\t\tform: transport\n\t\t\t}\n\t\t}));",
+          "new": "\t\t\t\ttype: \"text\",\n\t\t\t\ttext: `[dsh-bridge ${transport} message ${id} from ${message.from}]\\n${text}`\n\t\t\t}],\n\t\t\t// 0.2.0 (session format v4): \"plugin\" is a retired source wrapper and native\n\t\t\t// admission refuses it (\"format v4 message requires a producer-owned source\n\t\t\t// kind\"). A third-party plugin's producer-owned kind is `plugin:<pkg name>`\n\t\t\t// (see @deepseek-ai/dsh-session-format-v3-to-v4's V3 rewrite fallback).\n\t\t\tsource: {\n\t\t\t\tkind: `plugin:${name}`,\n\t\t\t\tform: transport\n\t\t\t}\n\t\t}));"
+        }
+      ]
+    },
+    {
+      "path": "cordis.patch.yml",
+      "action": "replace",
+      "edits": [
+        {
+          "marker": "- insert:\n    - id: huahua-dsh-bridge\n      name: dsh-bridge",
+          "absent": "    - id: dsh-bridge",
+          "old": "- insert:\n    - id: dsh-bridge\n      name: dsh-bridge",
+          "new": "- insert:\n    - id: huahua-dsh-bridge\n      name: dsh-bridge"
+        }
+      ]
+    }
+  ]
+}

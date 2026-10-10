@@ -72,3 +72,11 @@ test('manifest persisted atomically', async () => {
   assert.ok(Array.isArray(mani) && mani.length >= 3);
   assert.ok(!existsSync(join(root, 'roomA', 'manifest.json.tmp')));
 });
+test('non-ascii filename survives upload (manifest name is the original)', async () => {
+  const buf = randomBytes(32);
+  const up = await upload(buf, '贺贝贝-测试.md', 'roomB');
+  assert.equal(up.status, 200);
+  assert.equal(up.json.name, '贺贝贝-测试.md');
+  const mani = JSON.parse(await readFile(join(root, 'roomB', 'manifest.json'), 'utf8'));
+  assert.equal(mani[0].name, '贺贝贝-测试.md');
+});
