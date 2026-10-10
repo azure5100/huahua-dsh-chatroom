@@ -95,7 +95,7 @@ dsh plugin --profile web add link:D:\huahua-dsh-chatroom
 ```
 huahua-dsh-chatroom/
 ├─ README.md                       ← 本文件：定位/补丁速览/快速开始（手动补丁 + 插件安装）/文档导航/合规
-├─ package.json                    ← dsh.bundle 清单：本仓库 = 可安装 DSH 插件 huahua-dsh-chatroom（v0.1.0）
+├─ package.json                    ← dsh.bundle 清单：本仓库 = 可安装 DSH 插件 huahua-dsh-chatroom（v1.0.0）
 ├─ cordis.patch.yml                ← 插件 loader patch：只 insert 一行 dsh-chatroom-kit
 ├─ lib/                            ← 插件实现：index.js（补丁守护 + chatroom_* 工具 + RPC）+ patch-guard.js（纯逻辑）
 ├─ tests/                          ← node --test 单测（patch-guard：markers / 幂等 / node --check）
@@ -140,7 +140,7 @@ huahua-dsh-chatroom/
 - 上游 `dsh-chat` / `dsh-weave` / `dsh-bridge` 均为 **MIT 许可**（author Xiang Bai）。
 - **上游源码处理**：正式安装走官方 npm + 自研补丁（`patches/patch-weave.ps1`，或装插件后由 `lib/` 守护自动执行）；另在 `upstream-patched/` 收录三件套**完整核心代码快照**（MIT 允许再分发，已逐包保留 LICENSE 与归属；weave 副本为 Fix1–Fix4 已打补丁状态，详见 `upstream-patched/UPSTREAM-PATCHED.md`）。对上游的改动始终以"补丁差量 + 已打补丁快照"双形态呈现并附行号引用（`docs/PATCH-NOTES.md`）。
 - 仓库自研部分（补丁脚本、文档、图表、报告）遵循宽松许可发布，使用/分发时建议保留出处声明。
-- **公开去敏红线**：本仓库公开发布内容不含真实内网 IP、weave peerId 全文、ticket、房间 UUID 与真实主机名；双机实况统一以"主机A / 主机B"占位叙述（保留排障叙事本身）。资产清单与逐项去敏记录属团队内部文件，不入库。
+- **公开去敏约定**：本仓库不含 weave peerId 全文、ticket、房间 UUID 与真实主机名；双机实况统一以"主机A / 主机B"占位叙述（保留排障叙事本身）。**说明**：文档与测试夹具中的 `192.168.1.3` / `192.168.1.168` 属 RFC 1918 私有网段（不可路由），保留为排障记录的**可复现示例地址**；`docs/ASSET-INVENTORY.md` 为发布内容盘点，随仓库公开。
 
 ---
 

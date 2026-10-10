@@ -1,6 +1,6 @@
 {
   "name": "huahua-dsh-chatroom",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "dsh-chatroom kit plugin: dsh-weave Fix1-Fix4 patch guard + chatroom_* agent tools + /dsh-chatroom host RPC.",
   "type": "module",
   "main": "./lib/index.js",

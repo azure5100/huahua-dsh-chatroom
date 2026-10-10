@@ -54,7 +54,7 @@
 ```jsonc
 {
   "name": "huahua-dsh-chatroom",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "type": "module",
   "main": "lib/index.js",
   "types": "lib/types/index.d.ts",
